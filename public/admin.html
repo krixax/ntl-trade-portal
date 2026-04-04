@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Native Traders — Admin</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#F1F5F9;color:#1E293B;min-height:100vh}
+.hdr{background:#1E3A8A;padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:58px;position:sticky;top:0;z-index:50}
+.hdr-left{display:flex;align-items:center;gap:10px}
+.hdr-title{font-size:15px;font-weight:700;color:#fff}
+.hdr-sub{font-size:9px;color:#93C5FD;text-transform:uppercase;letter-spacing:.1em;margin-top:1px}
+.hdr-r{display:flex;gap:8px;align-items:center}
+.hdr-back{font-size:12px;color:#93C5FD;text-decoration:none;padding:6px 12px;border:1px solid rgba(255,255,255,.2);border-radius:8px;font-weight:600}
+.hdr-back:hover{background:rgba(255,255,255,.1);color:#fff}
+.hdr-logout{font-size:12px;color:#FCA5A5;background:none;border:1px solid rgba(252,165,165,.3);border-radius:8px;padding:6px 12px;cursor:pointer;font-weight:600}
+.hdr-logout:hover{background:rgba(252,165,165,.1)}
+.subnav{background:#142966;display:flex;padding:0 24px;border-bottom:1px solid rgba(255,255,255,.08)}
+.stab{font-size:11px;font-weight:700;color:#93C5FD;padding:11px 16px;border-bottom:2px solid transparent;cursor:pointer;text-transform:uppercase;letter-spacing:.06em;transition:all .15s}
+.stab:hover{color:#fff}
+.stab.on{color:#FCD34D;border-bottom-color:#B45309}
+.page{display:none;padding:22px 24px;max-width:1200px;margin:0 auto}
+.page.on{display:block}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+@media(max-width:768px){.stats{grid-template-columns:repeat(2,1fr)}}
+.stat{background:#fff;border-radius:10px;border:1px solid #E2E8F0;padding:14px 16px}
+.stat-val{font-size:26px;font-weight:800;color:#1E3A8A}
+.stat-lbl{font-size:10px;color:#64748B;margin-top:2px;text-transform:uppercase;letter-spacing:.05em}
+.card{background:#fff;border-radius:12px;border:1px solid #E2E8F0;overflow:hidden;margin-bottom:18px}
+.card-hdr{display:flex;align-items:center;justify-content:space-between;padding:13px 18px;border-bottom:1px solid #E2E8F0;background:#F8FAFC;gap:12px;flex-wrap:wrap}
+.card-title{font-size:14px;font-weight:700}
+.card-sub{font-size:11px;color:#64748B;margin-top:1px}
+.card-actions{display:flex;gap:8px;flex-wrap:wrap}
+table{width:100%;border-collapse:collapse}
+th{padding:9px 14px;text-align:left;font-size:10px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid #E2E8F0;background:#F8FAFC;white-space:nowrap}
+td{padding:10px 14px;border-bottom:1px solid #F1F5F9;font-size:12px;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#FAFBFD}
+.tbl-wrap{overflow-x:auto}
+.badge{display:inline-flex;font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px}
+.ok{background:#DCFCE7;color:#166534}
+.warn{background:#FEF3C7;color:#92400E}
+.danger{background:#FEE2E2;color:#991B1B}
+.info{background:#DBEAFE;color:#1E40AF}
+.btn{font-size:12px;padding:7px 14px;border-radius:8px;border:none;cursor:pointer;font-weight:700;transition:all .15s;white-space:nowrap}
+.btn-blue{background:#1E3A8A;color:#fff}.btn-blue:hover{background:#142966}
+.btn-amber{background:#B45309;color:#fff}.btn-amber:hover{background:#92400E}
+.btn-green{background:#166534;color:#fff}.btn-green:hover{background:#14532D}
+.btn-ghost{background:#F1F5F9;color:#475569;border:1px solid #E2E8F0}.btn-ghost:hover{background:#E2E8F0}
+.btn-sm{font-size:11px;padding:5px 10px;border-radius:6px}
+.btn-danger{background:#FEE2E2;color:#991B1B;border:1px solid #FECACA}.btn-danger:hover{background:#FECACA}
+.inp{width:100%;padding:9px 12px;border:1px solid #CBD5E1;border-radius:8px;font-size:13px;color:#1E293B;background:#fff;outline:none;transition:border .15s}
+.inp:focus{border-color:#1E3A8A}
+.lbl{display:block;font-size:10px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px}
+.field{margin-bottom:14px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:100;align-items:center;justify-content:center;padding:16px}
+.overlay.open{display:flex}
+.modal{background:#fff;border-radius:14px;width:100%;max-width:540px;max-height:90vh;overflow-y:auto;box-shadow:0 25px 50px rgba(0,0,0,.2)}
+.modal-hdr{padding:14px 20px;border-bottom:1px solid #E2E8F0;background:#1E3A8A;border-radius:14px 14px 0 0;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0}
+.modal-title{font-size:14px;font-weight:700;color:#fff}
+.mclose{background:none;border:none;color:#93C5FD;font-size:22px;cursor:pointer;line-height:1}
+.modal-body{padding:20px}
+.modal-foot{display:flex;justify-content:flex-end;gap:8px;padding:14px 20px;border-top:1px solid #E2E8F0;background:#F8FAFC;border-radius:0 0 14px 14px}
+.tbar{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.tbar input,.tbar select{font-size:12px;padding:8px 12px;border:1px solid #E2E8F0;border-radius:8px;color:#1E293B;background:#fff;outline:none}
+.tbar input{flex:1;min-width:180px}.tbar input:focus,.tbar select:focus{border-color:#1E3A8A}
+
+/* Upload zone */
+.upload-zone{border:2px dashed #CBD5E1;border-radius:12px;padding:40px;text-align:center;cursor:pointer;transition:all .2s;background:#FAFBFF}
+.upload-zone:hover,.upload-zone.drag{border-color:#1E3A8A;background:#EFF6FF}
+.upload-zone.drag{background:#DBEAFE}
+.upload-icon{font-size:40px;margin-bottom:12px}
+.upload-title{font-size:15px;font-weight:700;color:#1E293B;margin-bottom:6px}
+.upload-sub{font-size:12px;color:#64748B;line-height:1.6}
+.upload-progress{margin-top:16px;display:none}
+.progress-bar{height:6px;background:#E2E8F0;border-radius:3px;overflow:hidden;margin-top:8px}
+.progress-fill{height:100%;background:#1E3A8A;border-radius:3px;transition:width .3s;width:0%}
+.upload-result{margin-top:14px;padding:12px 16px;border-radius:8px;font-size:13px;font-weight:600;display:none}
+.upload-result.ok{background:#DCFCE7;color:#166534;border:1px solid #BBF7D0}
+.upload-result.err{background:#FEE2E2;color:#991B1B;border:1px solid #FECACA}
+
+.ws{font-weight:700;color:#166534}
+.rrp-col{color:#94A3B8}
+.gpp{display:inline-flex;font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;background:#DCFCE7;color:#166534}
+.no-price{color:#CBD5E1;font-style:italic;font-size:11px}
+.margin-preview{font-size:12px;padding:8px 12px;border-radius:8px;border:1px solid #E2E8F0;background:#F8FAFC;margin-bottom:12px;min-height:36px}
+
+.inv-sect{background:#F8FAFC;border:1px solid #E2E8F0;border-radius:10px;padding:14px;margin-bottom:12px}
+.inv-row{display:flex;justify-content:space-between;font-size:13px;padding:4px 0;border-bottom:1px solid #F1F5F9}
+.inv-row:last-child{border-bottom:none}
+.inv-lbl{color:#64748B}.inv-val{font-weight:600}
+.inv-big{font-size:15px;font-weight:800;border-top:2px solid #E2E8F0;margin-top:8px;padding-top:10px}
+.inv-big .inv-val{color:#166534}
+.empty{padding:32px;text-align:center;font-size:13px;color:#94A3B8}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1E293B;color:#fff;padding:10px 20px;border-radius:10px;font-size:13px;font-weight:600;opacity:0;transition:opacity .3s;pointer-events:none;z-index:999;white-space:nowrap}
+.toast.show{opacity:1}
+</style>
+</head>
+<body>
+<div class="hdr">
+  <div class="hdr-left">
+    <svg width="32" height="32" viewBox="0 0 36 36" fill="none">
+      <circle cx="18" cy="18" r="17" fill="none" stroke="#FCD34D" stroke-width="1.2"/>
+      <path d="M18 5C11 13 11 23 18 31C25 23 25 13 18 5Z" fill="#FCD34D" opacity=".25"/>
+      <circle cx="18" cy="18" r="2.5" fill="#FCD34D"/>
+    </svg>
+    <div>
+      <div class="hdr-title">Native Traders — Admin</div>
+      <div class="hdr-sub">Backend management panel</div>
+    </div>
+  </div>
+  <div class="hdr-r">
+    <a href="/" class="hdr-back">← Customer portal</a>
+    <button class="hdr-logout" onclick="logout()">Sign out</button>
+  </div>
+</div>
+
+<div class="subnav">
+  <div class="stab on"  onclick="showTab('dashboard',this)">Dashboard</div>
+  <div class="stab"     onclick="showTab('upload',this)">Upload prices</div>
+  <div class="stab"     onclick="showTab('products',this)">Products</div>
+  <div class="stab"     onclick="showTab('customers',this)">Customers</div>
+  <div class="stab"     onclick="showTab('orders',this)">Orders</div>
+</div>
+
+<!-- DASHBOARD -->
+<div class="page on" id="tab-dashboard">
+  <div class="stats">
+    <div class="stat"><div class="stat-val" id="st-prod">—</div><div class="stat-lbl">Total products</div></div>
+    <div class="stat"><div class="stat-val" id="st-priced" style="color:#166534">—</div><div class="stat-lbl">Products with prices</div></div>
+    <div class="stat"><div class="stat-val" id="st-orders">—</div><div class="stat-lbl">Orders placed</div></div>
+    <div class="stat"><div class="stat-val" id="st-rev" style="color:#166534">—</div><div class="stat-lbl">Total revenue</div></div>
+  </div>
+  <div class="stats" style="margin-bottom:20px">
+    <div class="stat"><div class="stat-val" id="st-cust">—</div><div class="stat-lbl">Customers</div></div>
+    <div class="stat"><div class="stat-val" id="st-pend" style="color:#B45309">—</div><div class="stat-lbl">Pending approval</div></div>
+    <div class="stat"><div class="stat-val" id="st-pord" style="color:#B45309">—</div><div class="stat-lbl">Pending orders</div></div>
+    <div class="stat"><div class="stat-val" id="st-active">—</div><div class="stat-lbl">Active products</div></div>
+  </div>
+  <div class="card">
+    <div class="card-hdr"><div><div class="card-title">Pending customer approvals</div><div class="card-sub">Approve access to the wholesale portal</div></div></div>
+    <div class="tbl-wrap"><table><thead><tr><th>Business</th><th>Contact</th><th>Email</th><th>Phone</th><th>Requested</th><th>Action</th></tr></thead><tbody id="dash-pending"></tbody></table></div>
+  </div>
+  <div class="card">
+    <div class="card-hdr"><div><div class="card-title">Recent orders</div></div></div>
+    <div class="tbl-wrap"><table><thead><tr><th>Invoice</th><th>Customer</th><th>Total</th><th>Date</th><th>Status</th><th></th></tr></thead><tbody id="dash-orders"></tbody></table></div>
+  </div>
+</div>
+
+<!-- UPLOAD PRICES -->
+<div class="page" id="tab-upload">
+  <div class="card" style="max-width:640px;margin:0 auto">
+    <div class="card-hdr"><div><div class="card-title">Upload master price list</div><div class="card-sub">Upload your NTL_MASTER_PRICES_LIST.xlsx — this replaces all current product pricing</div></div></div>
+    <div class="modal-body">
+      <div class="upload-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+        <div class="upload-icon">📊</div>
+        <div class="upload-title">Drop your Excel file here</div>
+        <div class="upload-sub">or click to browse<br>Accepts: .xlsx — NTL_MASTER_PRICES_LIST format<br>Sheets: HUNGRRY, ALBAK ATTA, BC, LAZZAT, MANIAARS</div>
+        <input type="file" id="fileInput" accept=".xlsx" style="display:none" onchange="handleFile(this.files[0])">
+      </div>
+      <div class="upload-progress" id="uploadProgress">
+        <div style="font-size:13px;color:#64748B;font-weight:600" id="progressLabel">Uploading...</div>
+        <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+      </div>
+      <div class="upload-result" id="uploadResult"></div>
+
+      <div style="margin-top:24px;padding-top:20px;border-top:1px solid #E2E8F0">
+        <div class="card-title" style="margin-bottom:10px">Expected file format</div>
+        <div style="font-size:12px;color:#64748B;line-height:1.8">
+          Your Excel file should contain these sheets:<br>
+          <strong>HUNGRRY</strong> — Frozen foods & breads (cols: SR NO, DESCRIPTION, WHS 20GP, RETAIL 30GP)<br>
+          <strong>ALBAK ATTA</strong> — Al Baker flour products (cols: Product Description, NZD 56/40)<br>
+          <strong>BC</strong> — BC Namkeen snacks (cols: Product Name, Gms, GP20, GP30)<br>
+          <strong>LAZZAT</strong> — Lazzat range (add prices manually after upload)<br>
+          <strong>MANIAARS</strong> — Maniarrs snacks (cols: Products, Grams Per Packet, GP20, GP30)
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PRODUCTS -->
+<div class="page" id="tab-products">
+  <div class="tbar">
+    <input id="prod-q" placeholder="Search product name, brand..." oninput="renderProds()">
+    <select id="prod-brand" onchange="renderProds()"><option value="">All brands</option></select>
+    <select id="prod-cat" onchange="renderProds()"><option value="">All categories</option></select>
+    <select id="prod-priced" onchange="renderProds()">
+      <option value="">All pricing</option>
+      <option value="priced">Has price</option>
+      <option value="unpriced">No price set</option>
+    </select>
+    <button class="btn btn-blue" onclick="openAddProd()">+ Add product</button>
+  </div>
+  <div class="card">
+    <div class="card-hdr">
+      <div><div class="card-title">Product catalogue</div><div class="card-sub" id="prod-ct">Loading...</div></div>
+      <div class="card-actions">
+        <button class="btn btn-ghost btn-sm" onclick="showTab('upload',document.querySelectorAll('.stab')[1])">Upload new prices</button>
+      </div>
+    </div>
+    <div class="tbl-wrap">
+      <table><thead><tr>
+        <th>Brand</th><th style="min-width:220px">Product name</th><th>Size</th><th>Category</th>
+        <th style="text-align:right">Wholesale</th><th style="text-align:right">RRP</th>
+        <th style="text-align:right">GP%</th><th>Stock</th><th>Visible</th><th>Actions</th>
+      </tr></thead>
+      <tbody id="prod-body"></tbody></table>
+    </div>
+  </div>
+</div>
+
+<!-- CUSTOMERS -->
+<div class="page" id="tab-customers">
+  <div class="tbar"><input id="cust-q" placeholder="Search..." oninput="renderCust()"></div>
+  <div class="card">
+    <div class="card-hdr"><div><div class="card-title">Customers</div><div class="card-sub" id="cust-ct"></div></div></div>
+    <div class="tbl-wrap"><table><thead><tr><th>Business</th><th>Contact</th><th>Email</th><th>Phone</th><th>Joined</th><th>Orders</th><th>Spent</th><th>Status</th><th></th></tr></thead><tbody id="cust-body"></tbody></table></div>
+  </div>
+</div>
+
+<!-- ORDERS -->
+<div class="page" id="tab-orders">
+  <div class="tbar">
+    <input id="ord-q" placeholder="Search invoice or customer..." oninput="renderOrds()">
+    <select id="ord-sf" onchange="renderOrds()"><option value="">All statuses</option><option value="pending">Pending</option><option value="confirmed">Confirmed</option><option value="paid">Paid</option></select>
+  </div>
+  <div class="card">
+    <div class="card-hdr"><div><div class="card-title">All orders</div><div class="card-sub" id="ord-ct"></div></div></div>
+    <div class="tbl-wrap"><table><thead><tr><th>Invoice</th><th>Customer</th><th>Lines</th><th>Subtotal</th><th>GST</th><th>Total</th><th>Date</th><th>Status</th><th></th></tr></thead><tbody id="ord-body"></tbody></table></div>
+  </div>
+</div>
+
+<!-- Product Modal -->
+<div class="overlay" id="prod-modal">
+  <div class="modal">
+    <div class="modal-hdr"><span class="modal-title" id="prod-modal-title">Product</span><button class="mclose" onclick="closeOv('prod-modal')">×</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="edit-id">
+      <div class="row2">
+        <div class="field"><label class="lbl">Brand</label><input class="inp" id="e-brand"></div>
+        <div class="field"><label class="lbl">Category</label>
+          <select class="inp" id="e-cat">
+            <option>Flour & Grains</option><option>Frozen & Bread</option><option>Spices & Masala</option>
+            <option>Snacks & Namkeen</option><option>Pickles & Sauces</option><option>Pasta & Noodles</option>
+            <option>Beverages & Tea</option><option>Sweets</option><option>Personal Care</option>
+            <option>Bakery</option><option>Rice</option><option>Other</option>
+          </select>
+        </div>
+      </div>
+      <div class="field"><label class="lbl">Product name</label><input class="inp" id="e-name"></div>
+      <div class="row3">
+        <div class="field"><label class="lbl">Wholesale ($)</label><input class="inp" id="e-ws" type="number" step="0.01" placeholder="0.00" oninput="calcMgn()"></div>
+        <div class="field"><label class="lbl">RRP ($)</label><input class="inp" id="e-rrp" type="number" step="0.01" placeholder="0.00" oninput="calcMgn()"></div>
+        <div class="field"><label class="lbl">MOQ</label><input class="inp" id="e-moq" type="number" placeholder="1" value="1"></div>
+      </div>
+      <div class="margin-preview" id="mgn-prev">Enter wholesale and RRP to see margin</div>
+      <div class="row2">
+        <div class="field"><label class="lbl">Size / weight</label><input class="inp" id="e-size" placeholder="e.g. 500g, 1kg"></div>
+        <div class="field"><label class="lbl">Stock description</label><input class="inp" id="e-qty" placeholder="e.g. 25 box, In stock"></div>
+      </div>
+      <div class="row2">
+        <div class="field"><label class="lbl">In stock</label>
+          <select class="inp" id="e-stock"><option value="1">Yes — visible to customers</option><option value="0">No — out of stock</option></select>
+        </div>
+        <div class="field"><label class="lbl">Visible in catalogue</label>
+          <select class="inp" id="e-active"><option value="1">Yes — show to customers</option><option value="0">No — hidden</option></select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeOv('prod-modal')">Cancel</button>
+      <button class="btn btn-blue" onclick="saveProd()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Invoice Modal -->
+<div class="overlay" id="inv-modal">
+  <div class="modal" style="max-width:520px">
+    <div class="modal-hdr"><span class="modal-title" id="inv-title">Invoice</span><button class="mclose" onclick="closeOv('inv-modal')">×</button></div>
+    <div class="modal-body" id="inv-body"></div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeOv('inv-modal')">Close</button>
+      <button class="btn btn-blue" onclick="window.print()">Print / PDF</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+let U=[],O=[],P=[],B=[], stats={};
+const $d=v=>'$'+(+v).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,',');
+const fd=s=>s?new Date(s).toLocaleDateString('en-NZ'):'—';
+const toast=(m,d=2800)=>{const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),d)};
+const openOv=id=>document.getElementById(id).classList.add('open');
+const closeOv=id=>document.getElementById(id).classList.remove('open');
+
+async function api(method, path, body) {
+  const opts = {method, credentials:'include', headers:{}};
+  if (body && !(body instanceof FormData)) { opts.headers['Content-Type']='application/json'; opts.body=JSON.stringify(body); }
+  else if (body) opts.body = body;
+  const r = await fetch(path, opts);
+  const d = await r.json().catch(()=>({error:'Parse error'}));
+  if (!r.ok) throw new Error(d.error || r.statusText);
+  return d;
+}
+
+async function logout() {
+  await fetch('/api/auth/logout',{method:'POST',credentials:'include'});
+  window.location.href='/';
+}
+
+async function loadAll() {
+  try {
+    const [u,o,p,b,s] = await Promise.all([
+      api('GET','/api/admin/users'),
+      api('GET','/api/admin/orders'),
+      api('GET','/api/admin/products'),
+      api('GET','/api/brands'),
+      api('GET','/api/admin/stats'),
+    ]);
+    U=Array.isArray(u)?u:[];
+    O=Array.isArray(o)?o.sort((a,b)=>b.created_at.localeCompare(a.created_at)):[];
+    P=Array.isArray(p)?p:[];
+    B=Array.isArray(b)?b:[];
+    stats=s||{};
+    buildFilters();
+    renderDash();renderProds();renderCust();renderOrds();
+  } catch(e) {
+    if (e.message.includes('Admin')) window.location.href='/';
+    else toast('Load error: '+e.message);
+  }
+}
+
+function buildFilters() {
+  // Brands
+  const bSel=document.getElementById('prod-brand');
+  const brands=[...new Set(P.map(p=>p.brand))].sort();
+  bSel.innerHTML='<option value="">All brands</option>'+brands.map(b=>`<option>${b}</option>`).join('');
+  // Categories
+  const cSel=document.getElementById('prod-cat');
+  const cats=[...new Set(P.map(p=>p.category))].sort();
+  cSel.innerHTML='<option value="">All categories</option>'+cats.map(c=>`<option>${c}</option>`).join('');
+}
+
+/* DASHBOARD */
+function renderDash() {
+  document.getElementById('st-prod').textContent=stats.products||P.length;
+  document.getElementById('st-priced').textContent=stats.priced_products||P.filter(p=>p.ws_price).length;
+  document.getElementById('st-orders').textContent=stats.orders||O.length;
+  document.getElementById('st-rev').textContent=$d(stats.revenue||0);
+  document.getElementById('st-cust').textContent=stats.customers||U.filter(u=>u.role==='customer').length;
+  document.getElementById('st-pend').textContent=stats.pending_customers||U.filter(u=>u.status==='pending').length;
+  document.getElementById('st-pord').textContent=stats.pending_orders||O.filter(o=>o.status==='pending').length;
+  document.getElementById('st-active').textContent=stats.active_products||P.filter(p=>p.active!==false).length;
+
+  const pend=U.filter(u=>u.status==='pending');
+  document.getElementById('dash-pending').innerHTML=pend.length
+    ?pend.map(u=>`<tr><td style="font-weight:700">${u.business_name}</td><td>${u.contact_name||'—'}</td><td style="color:#1E3A8A">${u.email}</td><td style="color:#64748B">${u.phone||'—'}</td><td style="color:#64748B">${fd(u.created_at)}</td><td><button class="btn btn-blue btn-sm" onclick="approveU(${u.id})">Approve</button></td></tr>`).join('')
+    :'<tr><td colspan="6" class="empty">No pending approvals</td></tr>';
+
+  document.getElementById('dash-orders').innerHTML=O.slice(0,8).map(o=>{
+    const u=U.find(u=>u.id===o.user_id)||{business_name:'Customer #'+o.user_id};
+    const sc=o.status==='paid'?'ok':o.status==='confirmed'?'info':'warn';
+    return`<tr><td style="font-weight:700;color:#1E3A8A">${o.invoice_number}</td><td>${u.business_name}</td><td style="font-weight:700">${$d(o.total||0)}</td><td style="color:#64748B">${fd(o.created_at)}</td><td><span class="badge ${sc}">${(o.status||'pending').toUpperCase()}</span></td><td><button class="btn btn-ghost btn-sm" onclick="viewInv('${o.invoice_number}')">View</button></td></tr>`;
+  }).join('')||'<tr><td colspan="6" class="empty">No orders yet</td></tr>';
+}
+
+/* PRODUCTS */
+function renderProds() {
+  const q=(document.getElementById('prod-q').value||'').toLowerCase();
+  const br=document.getElementById('prod-brand').value;
+  const cat=document.getElementById('prod-cat').value;
+  const pr=document.getElementById('prod-priced').value;
+  const f=P.filter(p=>
+    (!br||p.brand===br)&&(!cat||p.category===cat)&&
+    (!pr||(pr==='priced'?p.ws_price:!p.ws_price))&&
+    (!q||(p.name+p.brand+p.category).toLowerCase().includes(q))
+  );
+  document.getElementById('prod-ct').textContent=`${f.length} of ${P.length} products · ${P.filter(p=>p.ws_price).length} priced · ${P.filter(p=>p.active!==false&&p.in_stock!==false).length} live`;
+  document.getElementById('prod-body').innerHTML=f.length?f.map(p=>{
+    const gp=p.ws_price&&p.rrp?((p.rrp-p.ws_price)/p.rrp*100).toFixed(0):null;
+    const vis=p.active!==false;
+    const stk=p.in_stock!==false;
+    return`<tr style="${!vis?'opacity:.45':''}">
+      <td><span style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;background:#EFF6FF;color:#1E40AF">${p.brand}</span></td>
+      <td style="font-weight:600;max-width:250px;word-break:break-word">${p.name}</td>
+      <td style="color:#64748B;white-space:nowrap">${p.size||'—'}</td>
+      <td style="font-size:11px;color:#64748B">${p.category}</td>
+      <td style="text-align:right">${p.ws_price?`<span class="ws">${$d(p.ws_price)}</span>`:'<span class="no-price">Not set</span>'}</td>
+      <td style="text-align:right">${p.rrp?`<span class="rrp-col">${$d(p.rrp)}</span>`:'<span class="no-price">Not set</span>'}</td>
+      <td style="text-align:right">${gp?`<span class="gpp">${gp}%</span>`:'—'}</td>
+      <td><span class="badge ${stk?'ok':'danger'}">${stk?'In stock':'Out'}</span></td>
+      <td><span class="badge ${vis?'ok':'danger'}">${vis?'Visible':'Hidden'}</span></td>
+      <td><div style="display:flex;gap:4px">
+        <button class="btn btn-ghost btn-sm" onclick='editProd(${JSON.stringify(p).replace(/'/g,"\\'")})'>Edit</button>
+        <button class="btn btn-sm" style="background:${vis?'#FEE2E2':'#DCFCE7'};color:${vis?'#991B1B':'#166534'};border:1px solid ${vis?'#FECACA':'#BBF7D0'}" onclick="toggleVis(${p.id},${vis?'false':'true'})">${vis?'Hide':'Show'}</button>
+      </div></td>
+    </tr>`;
+  }).join(''):'<tr><td colspan="10" class="empty">No products found</td></tr>';
+}
+
+function calcMgn() {
+  const ws=parseFloat(document.getElementById('e-ws').value)||0;
+  const rrp=parseFloat(document.getElementById('e-rrp').value)||0;
+  const el=document.getElementById('mgn-prev');
+  if(ws&&rrp){
+    const gp=((rrp-ws)/rrp*100).toFixed(1), gpD=(rrp-ws).toFixed(2);
+    const bad=ws>=rrp;
+    el.textContent=bad?`⚠️ Wholesale ($${ws}) is at or above RRP ($${rrp}) — customer gets no margin!`:`Customer margin: ${gp}% — $${gpD} GP per unit`;
+    el.style.color=bad?'#991B1B':'#166534';el.style.background=bad?'#FEE2E2':'#DCFCE7';el.style.borderColor=bad?'#FECACA':'#BBF7D0';
+  } else { el.textContent='Enter wholesale and RRP to see margin'; el.style.color='#64748B';el.style.background='#F8FAFC';el.style.borderColor='#E2E8F0'; }
+}
+
+function openAddProd(){
+  document.getElementById('prod-modal-title').textContent='Add product';
+  document.getElementById('edit-id').value='';
+  ['e-brand','e-name','e-size','e-ws','e-rrp','e-qty'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('e-moq').value='1';
+  document.getElementById('e-stock').value='1';
+  document.getElementById('e-active').value='1';
+  calcMgn(); openOv('prod-modal');
+}
+function editProd(p){
+  document.getElementById('prod-modal-title').textContent='Edit: '+p.name.slice(0,40);
+  document.getElementById('edit-id').value=p.id;
+  document.getElementById('e-brand').value=p.brand||'';
+  document.getElementById('e-name').value=p.name;
+  document.getElementById('e-cat').value=p.category||'Other';
+  document.getElementById('e-size').value=p.size||'';
+  document.getElementById('e-ws').value=p.ws_price||'';
+  document.getElementById('e-rrp').value=p.rrp||'';
+  document.getElementById('e-moq').value=p.moq||1;
+  document.getElementById('e-qty').value=p.qty_desc||'';
+  document.getElementById('e-stock').value=p.in_stock!==false?'1':'0';
+  document.getElementById('e-active').value=p.active!==false?'1':'0';
+  calcMgn(); openOv('prod-modal');
+}
+async function saveProd(){
+  const id=document.getElementById('edit-id').value;
+  const body={
+    brand:document.getElementById('e-brand').value.trim(),
+    name:document.getElementById('e-name').value.trim(),
+    category:document.getElementById('e-cat').value,
+    size:document.getElementById('e-size').value.trim(),
+    ws_price:parseFloat(document.getElementById('e-ws').value)||null,
+    rrp:parseFloat(document.getElementById('e-rrp').value)||null,
+    moq:parseInt(document.getElementById('e-moq').value)||1,
+    qty_desc:document.getElementById('e-qty').value.trim(),
+    in_stock:document.getElementById('e-stock').value==='1',
+    active:document.getElementById('e-active').value==='1',
+  };
+  if(!body.name||!body.brand){toast('Name and brand are required');return;}
+  try{
+    if(id) await api('PUT',`/api/admin/products/${id}`,body);
+    else await api('POST','/api/admin/products',body);
+    toast(id?'Product updated':'Product added');
+    closeOv('prod-modal');
+    P=await api('GET','/api/admin/products');
+    buildFilters();renderProds();renderDash();
+  }catch(e){toast('Error: '+e.message);}
+}
+async function toggleVis(id,active){
+  await api('PUT',`/api/admin/products/${id}`,{active});
+  const idx=P.findIndex(p=>p.id===id);if(idx>=0)P[idx].active=active;
+  toast(active?'Product now visible':'Product hidden');renderProds();
+}
+
+/* CUSTOMERS */
+function renderCust(){
+  const q=(document.getElementById('cust-q').value||'').toLowerCase();
+  const f=U.filter(u=>!q||(u.business_name+u.email+(u.contact_name||'')).toLowerCase().includes(q));
+  document.getElementById('cust-ct').textContent=`${f.length} of ${U.length} customers`;
+  document.getElementById('cust-body').innerHTML=f.length?f.map(u=>{
+    const uo=O.filter(o=>o.user_id===u.id);
+    const sp=uo.reduce((s,o)=>s+(o.total||0),0);
+    const sc=u.status==='approved'?'ok':u.status==='pending'?'warn':'danger';
+    return`<tr><td style="font-weight:700">${u.business_name}</td><td>${u.contact_name||'—'}</td><td style="color:#1E3A8A">${u.email}</td><td style="color:#64748B">${u.phone||'—'}</td><td style="color:#64748B">${fd(u.created_at)}</td><td style="text-align:center">${uo.length}</td><td style="font-weight:700">${sp>0?$d(sp):'—'}</td><td><span class="badge ${sc}">${u.status.toUpperCase()}</span></td><td>${u.status==='pending'?`<button class="btn btn-blue btn-sm" onclick="approveU(${u.id})">Approve</button>`:''}</td></tr>`;
+  }).join(''):'<tr><td colspan="9" class="empty">No customers</td></tr>';
+}
+
+/* ORDERS */
+function renderOrds(){
+  const q=(document.getElementById('ord-q').value||'').toLowerCase();
+  const sf=document.getElementById('ord-sf').value;
+  const f=O.filter(o=>{const u=U.find(u=>u.id===o.user_id)||{business_name:''};return(!q||(o.invoice_number+u.business_name).toLowerCase().includes(q))&&(!sf||o.status===sf);});
+  document.getElementById('ord-ct').textContent=`${f.length} of ${O.length} orders`;
+  document.getElementById('ord-body').innerHTML=f.length?f.map(o=>{
+    const u=U.find(u=>u.id===o.user_id)||{business_name:'Customer #'+o.user_id};
+    const lc=(o.lines||[]).length;
+    const sc=o.status==='paid'?'ok':o.status==='confirmed'?'info':'warn';
+    return`<tr><td style="font-weight:700;color:#1E3A8A">${o.invoice_number}</td><td>${u.business_name}</td><td style="text-align:center;color:#64748B">${lc}</td><td>${$d(o.subtotal||0)}</td><td style="color:#64748B">${$d(o.gst||0)}</td><td style="font-weight:700">${$d(o.total||0)}</td><td style="color:#64748B">${fd(o.created_at)}</td>
+    <td><select class="inp" style="padding:4px 8px;font-size:11px;width:110px" onchange="setStatus(${o.id},this.value)"><option ${o.status==='pending'?'selected':''} value="pending">Pending</option><option ${o.status==='confirmed'?'selected':''} value="confirmed">Confirmed</option><option ${o.status==='paid'?'selected':''} value="paid">Paid</option></select></td>
+    <td><button class="btn btn-ghost btn-sm" onclick="viewInv('${o.invoice_number}')">Invoice</button></td></tr>`;
+  }).join(''):'<tr><td colspan="9" class="empty">No orders</td></tr>';
+}
+
+/* ACTIONS */
+async function approveU(id){
+  try{await api('POST','/api/admin/approve',{id});toast('Account approved — customer can now log in');await loadAll();}
+  catch(e){toast('Error: '+e.message);}
+}
+async function setStatus(id,status){
+  await api('POST','/api/admin/order-status',{id,status});
+  const idx=O.findIndex(o=>o.id===id);if(idx>=0)O[idx].status=status;
+  toast('Status: '+status);renderDash();
+}
+async function viewInv(num){
+  try{
+    const o=await api('GET',`/api/admin/invoice/${num}`);
+    const u=o.customer||{};const lines=o.lines||[];
+    document.getElementById('inv-title').textContent='Invoice '+o.invoice_number;
+    document.getElementById('inv-body').innerHTML=`
+      <div class="inv-sect">
+        <div style="display:flex;justify-content:space-between;margin-bottom:12px">
+          <div><div style="font-size:20px;font-weight:800;color:#1E3A8A">${o.invoice_number}</div><div style="font-size:11px;color:#64748B;margin-top:2px">${fd(o.created_at)}</div></div>
+          <span class="badge ${o.status==='paid'?'ok':o.status==='confirmed'?'info':'warn'}" style="font-size:12px;padding:5px 14px;align-self:flex-start">${(o.status||'PENDING').toUpperCase()}</span>
+        </div>
+        <div class="inv-row"><span class="inv-lbl">Customer</span><span class="inv-val">${u.business_name||'—'}</span></div>
+        <div class="inv-row"><span class="inv-lbl">Contact</span><span class="inv-val">${u.contact_name||'—'} · ${u.email||''}</span></div>
+      </div>
+      <table style="width:100%;border-collapse:collapse;margin-bottom:14px">
+        <thead><tr style="border-bottom:2px solid #E2E8F0">
+          <th style="padding:7px 4px;text-align:left;font-size:11px;color:#64748B">Product</th>
+          <th style="padding:7px 4px;text-align:left;font-size:11px;color:#64748B">Brand</th>
+          <th style="padding:7px 4px;text-align:center;font-size:11px;color:#64748B">Qty</th>
+          <th style="padding:7px 4px;text-align:right;font-size:11px;color:#64748B">Unit</th>
+          <th style="padding:7px 4px;text-align:right;font-size:11px;color:#64748B">Total</th>
+        </tr></thead>
+        <tbody>${lines.map(l=>`<tr style="border-bottom:1px solid #F1F5F9">
+          <td style="padding:7px 4px;font-weight:600;font-size:12px">${l.product_name}</td>
+          <td style="padding:7px 4px;font-size:11px;color:#64748B">${l.brand||''}</td>
+          <td style="padding:7px 4px;text-align:center">${l.qty}</td>
+          <td style="padding:7px 4px;text-align:right;color:#64748B">${$d(l.unit_price)}</td>
+          <td style="padding:7px 4px;text-align:right;font-weight:700">${$d(l.line_total)}</td>
+        </tr>`).join('')}</tbody>
+      </table>
+      <div class="inv-sect" style="background:#fff">
+        <div class="inv-row"><span class="inv-lbl">Subtotal (ex GST)</span><span class="inv-val">${$d(o.subtotal||0)}</span></div>
+        <div class="inv-row"><span class="inv-lbl">GST (15%)</span><span class="inv-val">${$d(o.gst||0)}</span></div>
+        <div class="inv-row inv-big"><span style="font-weight:800">Total (incl. GST)</span><span class="inv-val">${$d(o.total||0)}</span></div>
+      </div>
+      <p style="font-size:11px;color:#94A3B8;text-align:center;margin-top:14px">Native Traders Limited · +64 9 218 6266 · nativetradersales@gmail.com</p>`;
+    openOv('inv-modal');
+  }catch(e){toast('Error: '+e.message);}
+}
+
+/* FILE UPLOAD */
+function setupDrop(){
+  const zone=document.getElementById('dropZone');
+  zone.addEventListener('dragover',e=>{e.preventDefault();zone.classList.add('drag');});
+  zone.addEventListener('dragleave',()=>zone.classList.remove('drag'));
+  zone.addEventListener('drop',e=>{e.preventDefault();zone.classList.remove('drag');const f=e.dataTransfer.files[0];if(f)handleFile(f);});
+}
+
+function handleFile(file){
+  if(!file||!file.name.endsWith('.xlsx')){toast('Please upload an .xlsx file');return;}
+  const prog=document.getElementById('uploadProgress');
+  const fill=document.getElementById('progressFill');
+  const label=document.getElementById('progressLabel');
+  const result=document.getElementById('uploadResult');
+  prog.style.display='block';result.style.display='none';
+  label.textContent=`Uploading ${file.name}...`;fill.style.width='20%';
+
+  const fd=new FormData();
+  fd.append('file',file);
+
+  // Animate progress
+  let pct=20;
+  const tick=setInterval(()=>{pct=Math.min(pct+10,85);fill.style.width=pct+'%';label.textContent=pct<50?'Uploading...':pct<75?'Parsing Excel sheets...':'Importing products...';},400);
+
+  fetch('/api/admin/upload',{method:'POST',body:fd,credentials:'include'})
+    .then(r=>r.json())
+    .then(d=>{
+      clearInterval(tick);fill.style.width='100%';
+      setTimeout(()=>{prog.style.display='none';},600);
+      if(d.ok){
+        result.className='upload-result ok';
+        result.innerHTML=`✓ Successfully imported <strong>${d.count} products</strong> from ${d.brands?.length||'?'} brands: ${(d.brands||[]).join(', ')}`;
+        result.style.display='block';
+        toast('Prices uploaded — '+d.count+' products imported');
+        loadAll();
+      } else {
+        result.className='upload-result err';
+        result.textContent='Error: '+(d.error||'Unknown error');
+        result.style.display='block';
+        toast('Upload failed: '+d.error);
+      }
+    })
+    .catch(e=>{clearInterval(tick);prog.style.display='none';toast('Upload failed: '+e.message);});
+}
+
+/* TABS */
+function showTab(name,el){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.stab').forEach(b=>b.classList.remove('on'));
+  document.getElementById('tab-'+name).classList.add('on');
+  if(el) el.classList.add('on');
+}
+
+setupDrop();
+loadAll();
+</script>
+</body>
+</html>
